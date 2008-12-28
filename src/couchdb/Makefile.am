@@ -44,6 +44,7 @@ couch_file_collection = \
     couch_server_sup.erl \
     couch_stream.erl \
     couch_util.erl \
+    couch_embedded.erl \
     couch_view.erl
 
 couchebin_DATA = \
@@ -65,6 +66,7 @@ couchebin_DATA = \
     couch_server_sup.beam \
     couch_stream.beam \
     couch_util.beam \
+    couch_embedded.beam \
     couch_view.beam
 
 couchinclude_DATA = couch_db.hrl

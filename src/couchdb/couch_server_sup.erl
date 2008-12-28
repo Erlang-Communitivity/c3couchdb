@@ -30,18 +30,38 @@ start_link(IniFilename) ->
         {error, already_started}
     end.
 
-start_server("") ->
-        % no ini file specified, check the command line args
-    IniFile =
-    case init:get_argument(couchini) of
-    {ok, [CmdLineIniFilename]} ->
-        CmdLineIniFilename;
-    _Else ->
-        ?DEFAULT_INI
-    end,
-    start_server(IniFile);
-start_server(InputIniFilename) ->
+load_ini_from_file([A | _Rest] = InputIniFilename) when is_integer(A) ->
+        IniFilename = couch_util:abs_pathname(InputIniFilename),
+        IniBin = case file:read_file(IniFilename) of
+                {ok, IniBin0} -> IniBin0;
+                {error, enoent} ->
+                        Msg = io_lib:format("Couldn't find server configuration file ~s.", [InputIniFilename]),
+                        io:format("~s~n", [Msg]), 
+                        throw({startup_error, Msg})
+                end,
+        {ok, Ini} = couch_util:parse_ini(binary_to_list(IniBin)),
+        Ini.
 
+start_server("") ->
+	% no ini file specified, check the command line args
+	Ini = 
+		case init:get_argument(couchini) of
+			{ok, [CmdLineIniFilename]} -> 
+				load_ini_from_file(CmdLineIniFilename);
+			_Else ->
+				case application:get_all_env(couch) of
+					[] -> load_ini_from_file(?DEFAULT_INI);
+					Env -> Env
+				end
+    		end,
+    	start_server(Ini);
+
+start_server([A | _Rest] = InputIniFilename ) when is_integer(A)  ->
+	Ini = load_ini_from_file(InputIniFilename),
+	start_server(Ini);
+
+start_server([{_A, _B} | _Rest] = Ini) ->
+    io:format("Ini=~n~p~n", [Ini]),
     case init:get_argument(pidfile) of
     {ok, [PidFile]} ->
         case file:write_file(PidFile, os:getpid()) of
@@ -52,17 +72,6 @@ start_server(InputIniFilename) ->
     end,
 
     {ok, Cwd} = file:get_cwd(),
-    IniFilename = couch_util:abs_pathname(InputIniFilename),
-    IniBin =
-    case file:read_file(IniFilename) of
-    {ok, IniBin0} ->
-        IniBin0;
-    {error, enoent} ->
-        Msg = io_lib:format("Couldn't find server configuration file ~s.", [InputIniFilename]),
-        io:format("~s~n", [Msg]),
-        throw({startup_error, Msg})
-    end,
-    {ok, Ini} = couch_util:parse_ini(binary_to_list(IniBin)),
 
     ConsoleStartupMsg = proplists:get_value({"Couch", "ConsoleStartupMsg"}, Ini, "Apache CouchDB is starting."),
     LogLevel = list_to_atom(proplists:get_value({"Couch", "LogLevel"}, Ini, "error")),
@@ -150,7 +159,7 @@ start_server(InputIniFilename) ->
     StartResult = (catch supervisor:start_link(
         {local, couch_server_sup}, couch_server_sup, ChildProcesses)),
 
-    ConfigInfo = io_lib:format("Config Info ~s:~n\tCurrentWorkingDir=~s~n" ++
+    ConfigInfo = io_lib:format("Config Info :~n\tCurrentWorkingDir=~s~n" ++
         "\tDbRootDir=~s~n" ++
         "\tBindAddress=~p~n" ++
         "\tPort=~p~n" ++
@@ -160,7 +169,7 @@ start_server(InputIniFilename) ->
         "\tDbUpdateNotificationProcesses=~s~n" ++
         "\tFullTextSearchQueryServer=~s~n" ++
         "~s",
-            [IniFilename,
+            [
             Cwd,
             DbRootDir,
             BindAddress,
