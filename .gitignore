@@ -1,0 +1,9 @@
+m
+*~
+*.so
+*.log
+erl_crash.dump
+Makefile
+config.log
+config.status
+
