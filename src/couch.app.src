@@ -27,12 +27,12 @@
               {applications,[kernel,stdlib,crypto,inets,mochiweb]},
               {env, [
                         {{"Couch", "ConsoleStartupMsg"}, "Apache CouchDB is starting."},
-                        {{"Couch", "DbRootDir"}, "/usr/local/var/lib/couchdb"},
+                        {{"Couch", "DbRootDir"}, "./prive/data"},
                         {{"Couch", "Port"}, 5984},
                         {{"Couch", "BindAddress"}, "127.0.0.1"},
-                        {{"Couch", "DocumentRoot"}, "/usr/local/share/couchdb/www"},
+                        {{"Couch", "DocumentRoot"}, "./priv/www"},
                         {{"Couch", "LogFile"}, "./couch.log"},
-                        {{"Couch", "UtilDriverDir"}, "/usr/local/lib/couchdb/erlang/lib/couch-0.8.1-incubating/priv/lib"},
+                        {{"Couch", "UtilDriverDir"}, "./priv/lib"},
                         {{"Couch", "LogLevel"}, "info"},
                         {{"Couch Query Servers", "javascript"}, ["/usr/local/bin/couchjs","/usr/local/share/couchdb/server/main.js"]}
                 ]}

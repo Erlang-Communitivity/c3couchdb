@@ -1,0 +1,5 @@
+This dir is a work in progress and has not been committed
+
+I'm in the process of OTP-ifying it.  I've stripped out all the non-erlang bits except for
+the two .c files in src.  All of the js interaction is done through couch_query_servers.
+My plan is to rewrite couch_query_servers so that beamjs and erlv8 are used.
